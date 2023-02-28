@@ -2,17 +2,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# import yfinance as yf
-
-# Get symbol OHLC data
-# data = yf.download("^GVZ")
-
 roll = 252 * 1
 st_dev1 = 2
 st_dev2 = 3
 period = '1D'
 
-df = pd.read_csv("data/XAUUSD/XAUUSD1440.csv",
+df = pd.read_csv("data/EURUSD/EUR_USD_1D.csv",
                  names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
 df.set_index('date', inplace=True)
 df.drop(columns=['time', 'volume'], inplace=True)
@@ -60,71 +55,71 @@ df3_pct_move = df.query("`3_st_dev_pct_move` == 1")
 df2_diff = df.query("`2_mean_diff` == 1")
 df3_diff = df.query("`3_mean_diff` == 1")
 
-with open('XAUUSD.txt', 'w') as f:
+with open('GBPUSD.txt', 'w') as f:
     f.write(df.to_string())
-with open('XAUUSD_2st_dev_move.txt', 'w') as f:
+with open('GBPUSD_2st_dev_move.txt', 'w') as f:
     f.write(df2_move.to_string())
-with open('XAUUSD_3st_dev_move.txt', 'w') as f:
+with open('GBPUSD_3st_dev_move.txt', 'w') as f:
     f.write(df3_move.to_string())
-with open('XAUUSD_2st_dev_pct_move.txt', 'w') as f:
+with open('GBPUSD_2st_dev_pct_move.txt', 'w') as f:
     f.write(df2_move.to_string())
-with open('XAUUSD_3st_dev_pct_move.txt', 'w') as f:
+with open('GBPUSD_3st_dev_pct_move.txt', 'w') as f:
     f.write(df3_move.to_string())
-with open('XAUUSD_2mean_diff.txt', 'w') as f:
+with open('GBPUSD_2mean_diff.txt', 'w') as f:
     f.write(df2_move.to_string())
-with open('XAUUSD_3mean_diff.txt', 'w') as f:
+with open('GBPUSD_3mean_diff.txt', 'w') as f:
     f.write(df3_move.to_string())
 
-df.to_csv('XAUUSD.csv')
-df2_move.to_csv('XAUUSD_2st_dev_move.csv')
-df3_move.to_csv('XAUUSD_3st_dev_move.csv')
-df2_pct_move.to_csv('XAUUSD_2st_dev_pct_move.csv')
-df3_pct_move.to_csv('XAUUSD_3st_dev_pct_move.csv')
-df2_diff.to_csv('XAUUSD_2mean_diff.csv')
-df3_diff.to_csv('XAUUSD_3mean_diff.csv')
+df.to_csv('GBPUSD.csv')
+df2_move.to_csv('GBPUSD_2st_dev_move.csv')
+df3_move.to_csv('GBPUSD_3st_dev_move.csv')
+df2_pct_move.to_csv('GBPUSD_2st_dev_pct_move.csv')
+df3_pct_move.to_csv('GBPUSD_3st_dev_pct_move.csv')
+df2_diff.to_csv('GBPUSD_2mean_diff.csv')
+df3_diff.to_csv('GBPUSD_3mean_diff.csv')
 
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['2_st_dev_move_price'], color='purple', label='2_st', marker='^', alpha=1)
-plt.savefig('XAUUSD_2st_dev_move.png')
+plt.savefig('GBPUSD_2st_dev_move.png')
 plt.show()
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_st_dev_move_price'], color='red', label='3_st', marker='v', alpha=1)
-plt.savefig('XAUUSD_3st_dev_move.png')
+plt.savefig('GBPUSD_3st_dev_move.png')
 plt.show()
 
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['2_st_dev_pct_move_price'], color='purple', label='2_st', marker='^', alpha=1)
-plt.savefig('XAUUSD_2st_dev_pct_move.png')
+plt.savefig('GBPUSD_2st_dev_pct_move.png')
 plt.show()
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_st_dev_pct_move_price'], color='red', label='3_st', marker='v', alpha=1)
-plt.savefig('XAUUSD_3st_dev_pct_move.png')
+plt.savefig('GBPUSD_3st_dev_pct_move.png')
 plt.show()
 
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['2_mean_diff_move_price'], color='purple', label='2_st', marker='^', alpha=1)
-plt.savefig('XAUUSD_2mean_diff.png')
+plt.savefig('GBPUSD_2mean_diff.png')
 plt.show()
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_mean_diff_move_price'], color='red', label='3_st', marker='v', alpha=1)
-plt.savefig('XAUUSD_3mean_diff.png')
+plt.savefig('GBPUSD_3mean_diff.png')
 plt.show()
 
 
 """
-1. weekly data for the last 10 years on XAU, XAU, XAU, JPY
+1. weekly data for the last 10 years on GBP, GBP, GBP, JPY
 4. since when we have a new regimen?
 *FED Funds rates started moving up in FEB 2022
 *In July inflation searches in Google started rising steadily

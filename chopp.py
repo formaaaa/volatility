@@ -10,6 +10,9 @@ data = pd.read_csv("data/EURUSD/EURUSD1440.csv",
 data.set_index('date', inplace=True)
 data.drop(columns=['time', 'volume'], inplace=True)
 
+data_norm = (data - data.min()) / (data.max() - data.min())
+
+
 # Calculate the True Range (TR)
 data['TR'] = np.maximum(data['high'] - data['low'], np.abs(data['high'] - data['close'].shift(1)),
                         np.abs(data['low'] - data['close'].shift(1)))
@@ -21,10 +24,15 @@ data['ATR'] = data['TR'].rolling(period).mean()
 data['NATR'] = data['ATR'] / data['close']
 
 # Calculate the choppiness index
+denominator = np.abs(data['high'].rolling(period).max() - data['low'].rolling(period).min())
 data['CHOP'] = 100 * np.log10(
-    np.maximum(data['ATR'].rolling(period).sum(), 0.0001) / (data['high'] - data['low']).rolling(period).sum())
+    np.maximum(data['ATR'].rolling(period, min_periods=1).sum(), 0.0001) /
+    np.abs(data['high'].rolling(period, min_periods=1).max() - data['low'].rolling(period, min_periods=1).min())
+)
+
 
 # Print the last 10 rows of the data
 print(data.tail(10))
 
 data.to_csv('EURUSD_chop.csv')
+

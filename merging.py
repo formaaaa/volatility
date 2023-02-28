@@ -8,7 +8,7 @@ df_gbp_3 = pd.read_csv('GBPUSD_3st_dev_move.csv')
 df_eur_3 = pd.read_csv('EURUSD_3st_dev_pct_move.csv')
 df_xau_3 = pd.read_csv('XAUUSD_3mean_diff.csv')
 
-roll = 252 * 3
+roll = 252 * 1
 
 
 df_eur_gbp_2 = pd.merge(left=df_eur_2, left_on='date', right=df_gbp_2, right_on='date')
