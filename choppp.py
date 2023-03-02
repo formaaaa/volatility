@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
 import matplotlib.ticker as ticker
 
 df = pd.read_csv("data/EURUSD/EURUSD1440.csv",
@@ -20,9 +23,44 @@ denominator = np.log10(n)
 
 df['CI'] = 100 * numerator / denominator
 
+df['trend'] = np.where(df['CI'] < 50, 1, 0)
+
+fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02)
+
+fig.add_trace(go.Candlestick(x=df.index,
+                              open=df['open'],
+                              high=df['high'],
+                              low=df['low'],
+                              close=df['close'],
+                              name='EURUSD'), row=1, col=1)
+
+fig.add_trace(go.Scatter(x=df.index,
+                          y=df['CI'],
+                          mode='lines',
+                          name='Choppiness Index'), row=2, col=1)
+
+fig.add_trace(go.Scatter(x=df.index,
+                          y=df['trend'],
+                          mode='lines',
+                          name='Trend'), row=2, col=1)
+
+fig.update_layout(xaxis_rangeslider_visible=False)
+
+fig.show()
+
+
 df.to_csv('EURUSD_choppiness_index.csv')
 
-fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex='all', figsize=(12, 8))
+fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, row_heights=[0.7, 0.3])
+
+fig.add_trace(go.Scatter(x=df.index, y=df['close'], name='EURUSD Price'), row=1, col=1)
+fig.add_trace(go.Scatter(x=df.index, y=df['CI'], name='Choppiness Index', line=dict(color='green')), row=2, col=1)
+
+fig.update_layout(title_text='EURUSD Price and Choppiness Index', xaxis_rangeslider_visible=False)
+
+fig.show()
+
+"""fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex='all', figsize=(12, 8))
 
 ax1.plot(df.index, df['close'])
 ax1.set_ylabel('Price')
@@ -36,4 +74,4 @@ years_fmt = mdates.DateFormatter('%Y')
 ax2.xaxis.set_major_locator(years)
 ax2.xaxis.set_major_formatter(years_fmt)
 
-plt.show()
+plt.show()"""
