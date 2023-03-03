@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv("data/XAUUSD/XAUUSD1440.csv", names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
+df = pd.read_csv("data/EURUSD/EURUSD1440.csv",
+                names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
 df.set_index('date', inplace=True)
 df.drop(columns=['time', 'volume'], inplace=True)
 
 df['TR'] = np.maximum(np.maximum(df['high'] - df['low'], np.abs(df['high'] - df['close'].shift())),
-                      np.abs(df['low'] - df['close'].shift()))
+                     np.abs(df['low'] - df['close'].shift()))
 
 n = 14
 df['ATR'] = df['TR'].rolling(n).mean()
@@ -18,7 +19,7 @@ df['CI'] = 100 * numerator / denominator
 # Initialize trend column with all zeros
 df['trend'] = 0
 
-lenght = 22
+length = 22
 start_date = None
 mid_date = None
 
@@ -28,19 +29,27 @@ for i in range(1, len(df)):
         start_date = df.index[i]
         mid_date = None
     elif df['CI'].iloc[i] < 38.2 and start_date is not None and mid_date is None:
-        for j in range(i + 1, min(i + lenght + 1, len(df))):
+        for j in range(i + 1, min(i + length + 1, len(df))):
             if df['CI'].iloc[j] > 38.2:
                 mid_date = df.index[j]
                 break
         if mid_date is not None:
-            for j in range(j + 1, min(j + lenght + 1, len(df))):
+            for j in range(j + 1, min(j + length + 1, len(df))):
                 if df['CI'].iloc[j] < 61.8:
                     end_date = df.index[j]
                     df.loc[start_date:end_date, 'trend'] = 1
                     start_date = None
                     mid_date = None
                     break
+                elif 55 <= df['CI'].iloc[j] < 61.8:
+                    for k in range(j + 1, min(j + length + 1, len(df))):
+                        if df['CI'].iloc[k] < 38.2:
+                            start_date = df.index[j]
+                            mid_date = None
+                            break
+                    if start_date is not None:
+                        break
     elif df['CI'].iloc[i] > 38.2 and mid_date is not None:
         mid_date = None
 
-df.to_csv('XAUUSD_choppiness_index_new.csv')
+df.to_csv('EURUSD_choppiness_index_new.csv')
