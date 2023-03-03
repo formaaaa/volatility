@@ -20,11 +20,8 @@ denominator = np.log10(n)
 
 df['CI'] = 100 * numerator / denominator
 
-# add trend column
-df['trend'] = np.where(df['CI'] < 50, 1, 0)
 
-
-def zigzag(df, deviation=10):
+def zigzag(df, deviation=3):
     # Calculate the price extremes
     df['high'] = df['close'].rolling(window=10).max()
     df['low'] = df['close'].rolling(window=10).min()
@@ -40,16 +37,33 @@ def zigzag(df, deviation=10):
     df.loc[up_swing, 'swing'] = df['low'][up_swing]
     df.loc[down_swing, 'swing'] = df['high'][down_swing]
 
+    # Print the swing points
+    print(df['swing'])
+
     # Forward fill the swing points to create the ZigZag line
     df['zigzag'] = df['swing'].fillna(method='ffill')
-    return df[['close', 'zigzag']]
+
+    # Remove the extra columns
+    df.drop(columns=['high', 'low', 'high_diff', 'low_diff', 'swing'], inplace=True)
+
+    # Identify the peaks and valleys
+    df['peaks'] = np.where(df['zigzag'] > df['zigzag'].shift(1), df['CI'], np.nan)
+    df['valleys'] = np.where(df['zigzag'] < df['zigzag'].shift(1), df['CI'], np.nan)
+
+    # Print the peaks and valleys
+    print(df['peaks'])
+    print(df['valleys'])
+
+    return df
 
 
-zz = zigzag(df)
-df['zigzag'] = zz['zigzag']
+
+df = zigzag(df)
 df['peaks'] = np.where(df['zigzag'] > df['zigzag'].shift(1), df['CI'], np.nan)
 df['valleys'] = np.where(df['zigzag'] < df['zigzag'].shift(1), df['CI'], np.nan)
 
+
+df.to_csv('EURUSD_zz.csv')
 
 # create figure with subplots
 fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02)
@@ -89,7 +103,6 @@ when the chop fall back under 61.8 and continues to or below 38.2, then it rever
 
 
 """
-
 
 # add peaks and valleys column
 # threshold_peak = 55
