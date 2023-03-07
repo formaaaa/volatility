@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 symbols = ['EURUSD', 'GBPUSD', 'XAUUSD', 'USDJPY']
 
 # Step 2: Create a grid of subplots with the same number of rows as symbols and one column
-fig, axs = plt.subplots(nrows=len(symbols), ncols=1, figsize=(70, 40), sharex=True)
+fig, axs = plt.subplots(nrows=len(symbols), ncols=1, figsize=(80, 50), sharex=True)
 
 # Step 3: Iterate over each symbol and load and plot the data in the appropriate subplot
 for i, symbol in enumerate(symbols):
@@ -22,7 +22,7 @@ for i, symbol in enumerate(symbols):
     grouped.plot(ax=axs[i], color=['black', 'green'], linewidth=5)
     axs[i].set_xlabel('Date', fontsize=22)
     axs[i].set_ylabel('Close', fontsize=22)
-    axs[i].set_title(symbol, fontsize=24)
+    axs[i].set_title(symbol, fontsize=36)
 
     # Add text indicating trend status only on the first chart
     if i == 0:
@@ -33,8 +33,8 @@ for i, symbol in enumerate(symbols):
 
     # Remove legend and set tick parameters
     axs[i].legend().remove()
-    axs[i].tick_params(axis='both', which='major', labelsize=12)
-    axs[i].tick_params(axis='both', which='minor', labelsize=12)
+    axs[i].tick_params(axis='both', which='major', labelsize=24)
+    axs[i].tick_params(axis='both', which='minor', labelsize=24)
 
 # Step 4: Save and show the chart
 plt.savefig('all_trends.png', dpi=300, bbox_inches='tight')
