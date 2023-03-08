@@ -12,7 +12,7 @@ st_dev1 = 2
 st_dev2 = 3
 period = '1D'
 
-df = pd.read_csv("data/XAUUSD/XAUUSD1440 - Copy.csv",
+df = pd.read_csv("data/EURUSD/EURUSD1440.csv",
                  names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
 df.set_index('date', inplace=True)
 df.drop(columns=['time', 'volume'], inplace=True)
@@ -60,66 +60,66 @@ df3_pct_move = df.query("`3_st_dev_pct_move` == 1")
 df2_diff = df.query("`2_mean_diff` == 1")
 df3_diff = df.query("`3_mean_diff` == 1")
 
-with open('XAUUSD.txt', 'w') as f:
+with open('EURUSD.txt', 'w') as f:
     f.write(df.to_string())
-with open('XAUUSD_2st_dev_move.txt', 'w') as f:
+with open('EURUSD_2st_dev_move.txt', 'w') as f:
     f.write(df2_move.to_string())
-with open('XAUUSD_3st_dev_move.txt', 'w') as f:
+with open('EURUSD_3st_dev_move.txt', 'w') as f:
     f.write(df3_move.to_string())
-with open('XAUUSD_2st_dev_pct_move.txt', 'w') as f:
+with open('EURUSD_2st_dev_pct_move.txt', 'w') as f:
     f.write(df2_move.to_string())
-with open('XAUUSD_3st_dev_pct_move.txt', 'w') as f:
+with open('EURUSD_3st_dev_pct_move.txt', 'w') as f:
     f.write(df3_move.to_string())
-with open('XAUUSD_2mean_diff.txt', 'w') as f:
+with open('EURUSD_2mean_diff.txt', 'w') as f:
     f.write(df2_move.to_string())
-with open('XAUUSD_3mean_diff.txt', 'w') as f:
+with open('EURUSD_3mean_diff.txt', 'w') as f:
     f.write(df3_move.to_string())
 
-df.to_csv('XAUUSD.csv')
-df2_move.to_csv(f'XAUUSD_2st_dev_move{roll}.csv')
-df3_move.to_csv(f'XAUUSD_3st_dev_move{roll}.csv')
-df2_pct_move.to_csv(f'XAUUSD_2st_dev_pct_move{roll}.csv')
-df3_pct_move.to_csv(f'XAUUSD_3st_dev_pct_move{roll}.csv')
-df2_diff.to_csv(f'XAUUSD_2mean_diff{roll}.csv')
-df3_diff.to_csv(f'XAUUSD_3mean_diff{roll}.csv')
+df.to_csv('EURUSD.csv')
+df2_move.to_csv(f'EURUSD_2st_dev_move{roll}.csv')
+df3_move.to_csv(f'EURUSD_3st_dev_move{roll}.csv')
+df2_pct_move.to_csv(f'EURUSD_2st_dev_pct_move{roll}.csv')
+df3_pct_move.to_csv(f'EURUSD_3st_dev_pct_move{roll}.csv')
+df2_diff.to_csv(f'EURUSD_2mean_diff{roll}.csv')
+df3_diff.to_csv(f'EURUSD_3mean_diff{roll}.csv')
 
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['2_st_dev_move_price'], color='purple', label='2_st', marker='^', alpha=1)
-plt.savefig(f'XAUUSD_2st_dev_move{roll}.png')
+plt.savefig(f'EURUSD_2st_dev_move{roll}.png')
 # plt.show()
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_st_dev_move_price'], color='red', label='3_st', marker='v', alpha=1)
-plt.savefig(f'XAUUSD_3st_dev_move{roll}.png')
+plt.savefig(f'EURUSD_3st_dev_move{roll}.png')
 # plt.show()
 
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['2_st_dev_pct_move_price'], color='purple', label='2_st', marker='^', alpha=1)
-plt.savefig(f'XAUUSD_2st_dev_pct_move{roll}.png')
+plt.savefig(f'EURUSD_2st_dev_pct_move{roll}.png')
 # plt.show()
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_st_dev_pct_move_price'], color='red', label='3_st', marker='v', alpha=1)
-plt.savefig(f'XAUUSD_3st_dev_pct_move{roll}.png')
+plt.savefig(f'EURUSD_3st_dev_pct_move{roll}.png')
 # plt.show()
 
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['2_mean_diff_move_price'], color='purple', label='2_st', marker='^', alpha=1)
-plt.savefig(f'XAUUSD_2mean_diff{roll}.png')
+plt.savefig(f'EURUSD_2mean_diff{roll}.png')
 # plt.show()
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_mean_diff_move_price'], color='red', label='3_st', marker='v', alpha=1)
-plt.savefig(f'XAUUSD_3mean_diff{roll}.png')
+plt.savefig(f'EURUSD_3mean_diff{roll}.png')
 # plt.show()
 
 
