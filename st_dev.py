@@ -2,36 +2,53 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# import yfinance as yf
 
-# Get symbol OHLC data
-# data = yf.download("^GVZ")
-
+# Define the rolling window, standard deviation thresholds, and data frequency
 roll = 252 * 1
 st_dev1 = 2
 st_dev2 = 3
 period = '1D'
 
+# Load the data from a CSV file and set the date column as the index
 df = pd.read_csv("data/EURUSD/EURUSD1440.csv",
                  names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
 df.set_index('date', inplace=True)
+
+# Remove unnecessary columns
 df.drop(columns=['time', 'volume'], inplace=True)
 
+# Calculate the price movements and their absolute values
 df['move'] = df['close'] - df['close'].shift()
 df['abs_move'] = abs(df['close'] - df['close'].shift())
+
+# Calculate the rolling standard deviation of the price movements and the rolling mean of their absolute values
 df['st_dev'] = df['move'].rolling(roll).std()
 df['avg_move'] = df['abs_move'].rolling(roll).mean()
+
+# Calculate the ratio of price movements to their standard deviation
 df['st_dev_move'] = abs(df['move'] / df['st_dev'])
 
+# Calculate the percentage price movements and their absolute values
 df['pct_move'] = (df['close'] - df['close'].shift()) / df['close'].shift()
 df['abs_pct_move'] = abs((df['close'] - df['close'].shift()) / df['close'].shift())
+
+# Calculate the rolling standard deviation of the percentage price movements
 df['st_dev_pct'] = df['pct_move'].rolling(roll).std()
+
+# Calculate the ratio of percentage price movements to their standard deviation
 df['st_dev_pct_move'] = abs(df['pct_move'] / df['st_dev_pct'])
 
+# Calculate the differences between daily highs and lows
 df['diff'] = df['high'] - df['low']
+
+# Calculate the rolling mean of the daily differences
 df['avg_diff'] = df['diff'].rolling(roll).mean()
+
+# Calculate the ratio of daily differences to their rolling mean
 df['avg_diff_multiple'] = df['diff'] / df['avg_diff']
 
+# Create binary columns based on whether the price movements, percentage price movements, and daily differences are
+# greater than or equal to the corresponding standard deviation threshold
 df['2_st_dev_move'] = np.where(df['st_dev_move'] >= st_dev1, 1, 0)
 df['3_st_dev_move'] = np.where(df['st_dev_move'] >= st_dev2, 1, 0)
 df['2_st_dev_pct_move'] = np.where(df['st_dev_pct_move'] >= st_dev1, 1, 0)
@@ -39,6 +56,7 @@ df['3_st_dev_pct_move'] = np.where(df['st_dev_pct_move'] >= st_dev2, 1, 0)
 df['2_mean_diff'] = np.where(df['avg_diff_multiple'] >= st_dev1, 1, 0)
 df['3_mean_diff'] = np.where(df['avg_diff_multiple'] >= st_dev2, 1, 0)
 
+# Create columns containing the prices where the corresponding binary columns are equal to 1
 df['2_st_dev_move_price'] = np.where(df['2_st_dev_move'] == 1, df['close'], np.NAN)
 df['3_st_dev_move_price'] = np.where(df['3_st_dev_move'] == 1, df['close'], np.NAN)
 df['2_st_dev_pct_move_price'] = np.where(df['2_st_dev_pct_move'] == 1, df['close'], np.NAN)
@@ -46,35 +64,18 @@ df['3_st_dev_pct_move_price'] = np.where(df['3_st_dev_pct_move'] == 1, df['close
 df['2_mean_diff_move_price'] = np.where(df['2_mean_diff'] == 1, df['close'], np.NAN)
 df['3_mean_diff_move_price'] = np.where(df['3_mean_diff'] == 1, df['close'], np.NAN)
 
+# Convert the index to a datetime format
 df.index = pd.to_datetime(df.index)
 
-# from_ts = '2019-12-31'
-# df = df[(df.index > from_ts)]
-# print(df)
-
+# Query the dataframe to select the rows where the binary columns are equal to 1
 df2_move = df.query("`2_st_dev_move` == 1")
-print(df2_move)
 df3_move = df.query("`3_st_dev_move` == 1")
 df2_pct_move = df.query("`2_st_dev_pct_move` == 1")
 df3_pct_move = df.query("`3_st_dev_pct_move` == 1")
 df2_diff = df.query("`2_mean_diff` == 1")
 df3_diff = df.query("`3_mean_diff` == 1")
 
-with open('EURUSD.txt', 'w') as f:
-    f.write(df.to_string())
-with open('EURUSD_2st_dev_move.txt', 'w') as f:
-    f.write(df2_move.to_string())
-with open('EURUSD_3st_dev_move.txt', 'w') as f:
-    f.write(df3_move.to_string())
-with open('EURUSD_2st_dev_pct_move.txt', 'w') as f:
-    f.write(df2_move.to_string())
-with open('EURUSD_3st_dev_pct_move.txt', 'w') as f:
-    f.write(df3_move.to_string())
-with open('EURUSD_2mean_diff.txt', 'w') as f:
-    f.write(df2_move.to_string())
-with open('EURUSD_3mean_diff.txt', 'w') as f:
-    f.write(df3_move.to_string())
-
+# write them to CSV files
 df.to_csv('EURUSD.csv')
 df2_move.to_csv(f'EURUSD_2st_dev_move{roll}.csv')
 df3_move.to_csv(f'EURUSD_3st_dev_move{roll}.csv')
@@ -83,6 +84,7 @@ df3_pct_move.to_csv(f'EURUSD_3st_dev_pct_move{roll}.csv')
 df2_diff.to_csv(f'EURUSD_2mean_diff{roll}.csv')
 df3_diff.to_csv(f'EURUSD_3mean_diff{roll}.csv')
 
+# Plot the close price data along with the threshold crossings using scatter plots and save them as PNG files
 df[['close']].plot()
 plt.xlabel('date', fontsize=18)
 plt.ylabel('close', fontsize=18)
@@ -121,23 +123,3 @@ plt.ylabel('close', fontsize=18)
 plt.scatter(df.index, df['3_mean_diff_move_price'], color='red', label='3_st', marker='v', alpha=1)
 plt.savefig(f'EURUSD_3mean_diff{roll}.png')
 # plt.show()
-
-
-"""
-1. weekly data for the last 10 years on XAU, XAU, XAU, JPY
-4. since when we have a new regimen?
-*FED Funds rates started moving up in FEB 2022
-*In July inflation searches in Google started rising steadily
-3. hourly and 4h data for the last regime change
-5. try to identify tops and bottoms and clear trends (maybe a move of a certain distance within some period of time
-between tops and bottoms
-
-2022 - most of the time VIX between 20-30
-2021 - most of the time VIX below 20
-2020 - pandemic
-2019 - most of the time VIX below 20
-2018 - 2/3 of the time below 20
-2017 - most of the time below 15
-
-
-"""

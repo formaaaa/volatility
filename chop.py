@@ -1,122 +1,63 @@
-import numpy as np
 import pandas as pd
+import numpy as np
 
-
-def adder(Data, times):
-    for i in range(1, times + 1):
-        z = np.zeros((len(Data), 1), dtype=float)
-        Data = np.append(Data, z, axis=1)
-    return Data
-
-
-def deleter(Data, index, times):
-    for i in range(1, times + 1):
-        Data = np.delete(Data, index, axis=1)
-    return Data
-
-
-def jump(Data, jump):
-    Data = Data[jump:, ]
-
-    return Data
-
-
-def ma(Data, lookback, what, where):
-    for i in range(len(Data)):
-        try:
-            Data[i, where] = (Data[i - lookback + 1:i + 1, what].mean())
-
-        except IndexError:
-            pass
-
-    return Data
-
-
-def ema(Data, alpha, lookback, what, where):
-    # alpha is the smoothing factor
-    # window is the lookback period
-    # what is the column that needs to have its average calculated
-    # where is where to put the exponential moving average
-
-    alpha = alpha / (lookback + 1.0)
-    beta = 1 - alpha
-
-    # First value is a simple SMA
-    Data = ma(Data, lookback, what, where)
-
-    # Calculating first EMA
-    Data[lookback + 1, where] = (Data[lookback + 1, what] * alpha) + (Data[lookback, where] * beta)
-    # Calculating the rest of EMA
-    for i in range(lookback + 2, len(Data)):
-        try:
-            Data[i, where] = (Data[i, what] * alpha) + (Data[i - 1, where] * beta)
-
-        except IndexError:
-            pass
-    return Data
-
-
-def ATR(Data, lookback, high, low, close, where):
-    # From exponential to smoothed moving average
-    lookback = (lookback * 2) - 1
-    # True Range
-    for i in range(len(Data)):
-        try:
-            Data[i, where] = max(Data[i, high] - Data[i, low],
-                                 abs(Data[i, high] - Data[i - 1, close]),
-                                 abs(Data[i, low] - Data[i - 1, close]))
-
-        except ValueError:
-            pass
-
-    Data[0, where] = 0
-    Data = ema(Data, 2, lookback, where, where + 1)
-    Data = deleter(Data, where, 1)
-    Data = jump(Data, lookback)
-    return Data
-
-
-def choppiness_index(Data, lookback, high, low, where):
-    # Calculating the Sum of ATR's
-    for i in range(len(Data)):
-        Data[i, where] = Data[i - lookback + 1:i + 1, 4].sum()
-
-        # Calculating the range
-    for i in range(len(Data)):
-        try:
-            Data[i, where + 1] = max(Data[i - lookback + 1:i + 1, 1] - min(Data[i - lookback + 1:i + 1, 2]))
-        except:
-            pass
-    # Calculating the Ratio
-    Data[:, where + 2] = Data[:, where] / Data[:, where + 1]
-
-    # Calculate the Choppiness Index
-    for i in range(len(Data)):
-        Data[i, where + 3] = 100 * np.log(Data[i, where + 2]) * (1 / np.log(lookback))
-    # Cleaning
-    Data = deleter(Data, 5, 3)
-
-    return Data
-
-
-df = pd.read_csv("data/XAUUSD/XAUUSD1440.csv",
-                 names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
+# Read in the data
+df = pd.read_csv("data/USDJPY/USDJPY1440.csv", names=['date', 'time', 'open', 'high', 'low', 'close', 'volume'])
+# Set the date as the index
 df.set_index('date', inplace=True)
+# Drop the time and volume columns
 df.drop(columns=['time', 'volume'], inplace=True)
 
-my_data = df.to_numpy()
-my_data = ATR(my_data, 14, 1, 2, 3, 4)
-#np.savetxt('test.txt', my_data, delimiter=',')
+# Calculate the true range (TR)
+df['TR'] = np.maximum(np.maximum(df['high'] - df['low'], np.abs(df['high'] - df['close'].shift())),
+                      np.abs(df['low'] - df['close'].shift()))
 
-# Adding a few columns
-my_data = adder(my_data, 10)
-#print(my_data)
-# Calculating a 20-period ATR
-my_data = ATR(my_data, 20, 1, 2, 3, 4)
-#print(my_data)
+# Calculate the average true range (ATR)
+n = 14
+df['ATR'] = df['TR'].rolling(n).mean()
 
-# Calculating the Sum of ATR's (atr_col is the index where the ATR is stored, in our example, it is 4)
-for i in range(len(my_data)):
-  my_data[i, where] = my_data[i - lookback + 1:i + 1, atr_col].sum()
+# Calculate the choppiness index (CI)
+numerator = np.log10(df['ATR'].rolling(n).sum() / (df['high'].rolling(n).max() - df['low'].rolling(n).min()))
+denominator = np.log10(n)
+df['CI'] = 100 * numerator / denominator
 
-my_data = choppiness_index(my_data, 20, 1, 2, 4)
+# Initialize trend column with all zeros
+df['trend'] = 0
+
+lenght = 22
+start_date = None
+mid_date = None
+
+# Find periods of trending market
+for i in range(1, len(df)):
+    # If current value of CI is less than 61.8 and previous value is greater than or equal to 61.8,
+    # then we have entered a trending period. Set start_date and mid_date to current index and None respectively.
+    if df['CI'].iloc[i] < 61.8 <= df['CI'].iloc[i - 1]:
+        start_date = df.index[i]
+        mid_date = None
+    # If current value of CI is less than 38.2, and we have a start_date (i.e. we have entered a trending period),
+    # but have not yet found a mid_date, search for a mid_date within the next 'lenght' number of rows.
+    elif df['CI'].iloc[i] < 38.2 and start_date is not None and mid_date is None:
+        for j in range(i + 1, min(i + lenght + 1, len(df))):
+            if df['CI'].iloc[j] > 38.2:
+                mid_date = df.index[j]
+                break
+        # If a mid_date is found, search for an end_date within the next 'lenght' number of rows.
+        # If an end_date is found, set the 'trend' column to 1 for all dates between start_date and end_date,
+        # and reset start_date and mid_date to None to indicate the end of the trending period.
+        if mid_date is not None:
+            for j in range(j + 1, min(j + lenght + 1, len(df))):
+                if df['CI'].iloc[j] < 61.8:
+                    end_date = df.index[j]
+                    df.loc[start_date:end_date, 'trend'] = 1
+                    start_date = None
+                    mid_date = None
+                    break
+    # If current value of CI is greater than 38.2 and we have a mid_date (i.e. we have found a mid_date but not an
+    # end_date yet), set mid_date to None to indicate that we need to search for a new mid_date.
+    elif df['CI'].iloc[i] > 38.2 and mid_date is not None:
+        mid_date = None
+
+
+# Save the results to a CSV file
+df.to_csv('USDJPY_choppiness_index_new.csv')
